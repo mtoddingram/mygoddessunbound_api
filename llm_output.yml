@@ -1,0 +1,182 @@
+prompt: ['You are an expert astrologer and clear technical interpreter. You will receive a JSON payload containing ecliptic longitudes (0–360°) for angles, planets, and house cusps. Convert those numbers into zodiac signs, house placements, and key aspects, then write a concise, practical daily horoscope. AKeep guidance reflective and actionable.
+
+          ## Input
+
+          ```
+          {
+            "data": {
+              "angles": {
+                "ascendant": {
+                  "longitude": 224.26
+                },
+                "midheaven": {
+                  "longitude": 140.11
+                }
+              },
+              "bodies": {
+                "Jupiter": {
+                  "longitude": 191.95
+                },
+                "Mars": {
+                  "longitude": 267.91
+                },
+                "Mercury": {
+                  "longitude": 195.27
+                },
+                "Moon": {
+                  "longitude": 239.95
+                },
+                "Neptune": {
+                  "longitude": 236.8
+                },
+                "Pluto": {
+                  "longitude": 175.33
+                },
+                "Saturn": {
+                  "longitude": 38.74
+                },
+                "Sun": {
+                  "longitude": 174.49
+                },
+                "Uranus": {
+                  "longitude": 184.17
+                },
+                "Venus": {
+                  "longitude": 143.16
+                }
+              },
+              "houses": [
+                224.26,
+                25.31,
+                134.3,
+                320.11,
+                140.12,
+                274.07,
+                44.26,
+                205.31,
+                314.3,
+                140.11,
+                320.12,
+                94.07
+              ]
+            },
+            "status": "success"
+          }
+          ```
+
+          ## Compute & Interpret
+
+          1. **Zodiac math**
+
+          * Zodiac signs (30° each):
+            0–30 Aries, 30–60 Taurus, 60–90 Gemini, 90–120 Cancer, 120–150 Leo, 150–180 Virgo,
+            180–210 Libra, 210–240 Scorpio, 240–270 Sagittarius, 270–300 Capricorn,
+            300–330 Aquarius, 330–360 Pisces.
+          * For any longitude `L`:
+            `sign_index = floor(L / 30)` → map to sign above.
+            `deg_in_sign = floor(L % 30)`; `min_in_sign = floor((L % 1) * 60)`.
+            Format like “23°14′ Capricorn”.
+
+          2. **House placement**
+
+          * `houses` array gives cusps for Houses 1→12 in order (index 0 = House 1 cusp/Ascendant).
+          * A planet at longitude `P` belongs to House `h` if `P` lies between cusp `h` and cusp `h+1` in zodiacal order, wrapping H12→H1 across 360°. Handle wrap-around (e.g., cusp 11 = 350°, cusp 12 = 5°).
+
+          3. **Key aspects (orb = maximum deviation)**
+
+          * Use the smaller angular distance Δ between two bodies (0–180).
+          * Aspects & default orbs:
+            Conjunction 0° ±6°, Opposition 180° ±6°, Trine 120° ±6°, Square 90° ±6°, Sextile 60° ±4°, Quincunx 150° ±3°.
+          * List strongest 3–6 aspects by tightest orb, prioritizing Sun, Moon, Ascendant, Midheaven.
+
+          4. **Weights (emphasis)**
+
+          * Luminaries & angles: Sun 3, Moon 3, Asc 3, MC 2.
+          * Personals: Venus 2, Mars 2, Mercury 1.5.
+          * Socials: Jupiter 1, Saturn 1.
+          * Outer: Uranus 0.75, Neptune 0.75, Pluto 0.75.
+          * House priority: I/IV/VII/X (1,4,7,10) > II/V/VIII/XI > III/VI/IX/XII.
+
+          5. **Synthesis rules**
+
+          * Start from **today’s focal theme** via Sun/Moon/Asc sign + houses and the tightest aspects touching them.
+          * Translate aspects into practical guidance: opportunities (trines/sextiles), growth edges (squares/oppositions), focus or initiations (conjunctions).
+          * If Moon is angular or tightly aspected, give it extra weight for mood/tempo.
+          * Convert astro to everyday language: mindset, relationships, work/creation, body/energy.
+          * Offer **one concrete action** and **one gentle caution**.
+          * Close with a short mantra/affirmation (≤12 words).
+
+          6. **Style**
+
+          * Word count: **150–220 words**.
+          * Voice: warm, grounded, encouraging; no jargon; 2–3 short paragraphs + bullets.
+          * Do **not** mention calculations or degrees in the prose (keep them in a compact header).
+
+          ## Output format
+
+          Return **only** the following Markdown:
+
+          **Chart Highlights**
+
+          * Sun: `<sign>`, House `<n>`
+          * Moon: `<sign>`, House `<n>`
+          * Ascendant: `<sign>`
+          * Standout aspects (tightest first): `<Body A> <aspect> <Body B>` (orb `x°`)
+
+          **Daily Reading**
+          *A brisk 2–3 sentence theme paragraph.*
+
+          **Make it Real**
+
+          * **Do:** `<one concrete action tailored to the aspects>`
+          * **Watch for:** `<one realistic pitfall framed constructively>`
+
+          **Mantra**
+          “`<short, affirmative mantra>`”
+
+          ## Example mapping helper (pseudo, not printed)
+
+          * `sign = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"][sign_index]`
+          * Degrees/minutes shown only in **Chart Highlights** if you choose; otherwise omit.
+
+          ## Safety & tone
+
+          * No absolute predictions; use possibility language (“points to,” “supports,” “invites”).
+          * Keep advice everyday and respectful of user autonomy.']
+llm_1_answer: ['**Chart Highlights**
+
+              * Sun: Virgo, House 3
+              * Moon: Scorpio, House 1
+              * Ascendant: Scorpio
+              * Standout aspects (tightest first): Pluto conjunction Sun (orb 0.8°); Neptune sextile Sun (orb 2.3°); Mars square Pluto (orb 2.6°); Venus conjunction Midheaven (orb 3.1°); Moon conjunction Neptune (orb 3.1°); Mars square Sun (orb 3.4°)
+
+              **Daily Reading**
+              Today favors deep focus and honest thinking. With the Sun joined to Pluto in your communicative 3rd house, you can cut through noise, organize ideas, and say the thing that actually matters. Neptune’s helpful link to the Sun softens the edges—intuition supports the analysis—while Venus near the Midheaven highlights charm and visibility. It’s a good day to present, publish, or pitch.
+
+              The Moon meeting Neptune in your 1st boosts sensitivity and magnetism; people feel you. At the same time, Mars squaring the Sun/Pluto warns against pushing too hard or getting lost in perfection. Aim for clarity over intensity: fewer words, better chosen.
+
+              **Make it Real**
+
+              * **Do:** Draft and share one concise update (or proposal) that solves a real pain point—lead with the outcome, then three crisp bullets.
+              * **Watch for:** Over-correcting others or chasing flawless details; pause to confirm understanding and double-check assumptions before hitting send.
+
+              **Mantra**
+              “Steady, clear, and kind wins today.”
+              ']
+llm_2_answer: ['**Chart Highlights**
+
+              * Sun: Virgo, House 11
+              * Moon: Scorpio, House 1
+              * Ascendant: Scorpio
+              * Standout aspects (tightest first): Sun conjunct Pluto (orb 0.8°), Pluto square Mars (orb 2.6°), Venus conjunct Midheaven (orb 3.1°), Moon conjunct Neptune (orb 3.2°)
+
+              **Daily Reading**
+              Today’s energy is potent and focused, urging a deep dive into what truly matters, especially regarding your community and future aspirations. You have an opportunity to make a powerful, transformative change by attending to critical details. At the same time, your emotional sensitivity is heightened, making it essential to distinguish your own feelings from the noise around you. The day calls for a blend of sharp analysis and deep intuition.
+
+              **Make it Real**
+
+              * **Do:** Tackle a complex problem or declutter a space that supports your long-term vision. Channel the intense mental energy into a single, productive outlet to find clarity.
+              * **Watch for:** Power struggles or forceful conversations. The drive to make things happen is strong, but could create friction if you push an agenda too hard or too fast.
+
+              **Mantra**
+              “I channel my intensity into focused, meaningful action.”']
